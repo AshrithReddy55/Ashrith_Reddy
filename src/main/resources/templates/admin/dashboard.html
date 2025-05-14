@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bookstore Admin</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .book-form {
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .flash-message {
+            animation: flashFade 3s forwards;
+        }
+        
+        @keyframes flashFade {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="mb-4">Bookstore Admin Dashboard</h1>
+                
+                <div th:if="${success}" class="alert alert-success flash-message" role="alert" th:text="${success}"></div>
+                
+                <div class="book-form">
+                    <h3>Add New Book</h3>
+                    <form th:action="@{/admin/books/add}" method="post" th:object="${book}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Book Name</label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="author" class="form-label">Author</label>
+                            <input type="text" class="form-control" id="author" th:field="*{author}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price</label>
+                            <input type="number" step="0.01" class="form-control" id="price" th:field="*{price}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" th:field="*{quantity}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Book</button>
+                    </form>
+                </div>
+                
+                <h3>Book Inventory</h3>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Author</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="book : ${books}" class="fade-in">
+                            <td th:text="${book.id}"></td>
+                            <td th:text="${book.name}"></td>
+                            <td th:text="${book.author}"></td>
+                            <td th:text="${'$' + book.price}"></td>
+                            <td th:text="${book.quantity}"></td>
+                            <td>
+                                <a th:href="@{/admin/books/edit/{id}(id=${book.id})}" class="btn btn-sm btn-warning">Edit</a>
+                                <a th:href="@{/admin/books/delete/{id}(id=${book.id})}" class="btn btn-sm btn-danger" 
+                                   onclick="return confirm('Are you sure you want to delete this book?')">Delete</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${books.isEmpty()}">
+                            <td colspan="6" class="text-center">No books available</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <a href="/" class="btn btn-info mt-3">View Store</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

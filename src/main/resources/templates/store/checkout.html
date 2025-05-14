@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        .order-summary {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .payment-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .payment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .payment-card.selected {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-book-open me-2"></i>Virtual Bookstore
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4 fade-in">
+        <h2 class="mb-4">Checkout</h2>
+        
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Book</th>
+                                        <th>Quantity</th>
+                                        <th class="text-end">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item : ${cart.items}">
+                                        <td>
+                                            <div th:text="${item.book.name}">Book Title</div>
+                                            <small class="text-muted" th:text="${'by ' + item.book.author}">Author</small>
+                                        </td>
+                                        <td th:text="${item.quantity}">1</td>
+                                        <td class="text-end" th:text="${'$' + #numbers.formatDecimal(item.subtotal, 1, 2)}">$19.99</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="2" class="text-end">Total:</th>
+                                        <th class="text-end" th:text="${'$' + #numbers.formatDecimal(cart.total, 1, 2)}">$19.99</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Payment Method</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="card payment-card selected" id="card-payment">
+                                    <div class="card-body text-center py-4">
+                                        <i class="fas fa-credit-card mb-2" style="font-size: 2rem;"></i>
+                                        <p class="mb-0">Credit Card</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card payment-card" id="paypal-payment">
+                                    <div class="card-body text-center py-4">
+                                        <i class="fab fa-paypal mb-2" style="font-size: 2rem;"></i>
+                                        <p class="mb-0">PayPal</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form th:action="@{/process-payment}" method="post">
+                            <div class="mb-3">
+                                <label for="cardHolder" class="form-label">Card Holder Name</label>
+                                <input type="text" class="form-control" id="cardHolder" value="John Doe" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cardNumber" class="form-label">Card Number</label>
+                                <input type="text" class="form-control" id="cardNumber" value="4242 4242 4242 4242" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="expDate" class="form-label">Expiration Date</label>
+                                    <input type="text" class="form-control" id="expDate" value="12/25" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="cvv" class="form-label">CVV</label>
+                                    <input type="text" class="form-control" id="cvv" value="123" required>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-lock me-2"></i>Pay Now
+                                </button>
+                                <a href="/cart" class="btn btn-outline-secondary">Back to Cart</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const paymentCards = document.querySelectorAll('.payment-card');
+            
+            paymentCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    paymentCards.forEach(c => c.classList.remove('selected'));
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
